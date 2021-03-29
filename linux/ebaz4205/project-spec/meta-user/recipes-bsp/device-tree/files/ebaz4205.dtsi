@@ -1,0 +1,73 @@
+/ {
+    model = "Zynq EBAZ4205 Board";
+
+    aliases {
+        ethernet0 = &gem0;
+        serial0 = &uart1;
+        mmc0 = &sdhci0;
+        nand0 = &nand0;
+    };
+
+    gpio-leds {
+        compatible = "gpio-leds";
+
+        led-red {
+            label = "led-red";
+            gpios = <&gpio0 54 1>;
+            default-state = "on";
+            linux,default-trigger = "heartbeat";
+        };
+
+        led-green {
+            label = "led-green";
+            gpios = <&gpio0 55 1>;
+            default-state = "off";
+        };
+    };
+
+    gpio-keys {
+        compatible = "gpio-keys";
+        autorepeat;
+
+        s2 {
+            label = "s2";
+            gpios = <&gpio0 20 1>;
+            linux,code = <102>;
+            wakeup-source;
+        };
+
+        s3 {
+            label = "s3";
+            gpios = <&gpio0 32 1>;
+            linux,code = <116>;
+            wakeup-source;
+        };
+    };
+};
+
+&gem0 {
+    status = "okay";
+    phy-mode = "mii";
+    phy-handle = <&ethernet_phy>;
+
+    ethernet_phy: ethernet-phy@0 {
+        reg = <0x0>;
+        device_type = "ethernet-phy";
+    };
+};
+
+&sdhci0 {
+    status = "okay";
+    xlnx,has-cd = <0x1>;
+    xlnx,has-power = <0x0>;
+    xlnx,has-wp = <0x0>;
+};
+
+&uart1 {
+    status = "okay";
+};
+
+&nand0 {
+    status = "disabled";
+};
+

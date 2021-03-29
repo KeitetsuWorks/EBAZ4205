@@ -1,0 +1,19 @@
+# Blacklist everything at top-level
+/*
+
+# whitelist the .gitignore's, .gitmodule's, and READMEs
+!.gitignore
+!.gitmodules
+!README.md
+!LICENSE
+
+# whitelist expected folders and files
+!/docs/
+
+!/linux/
+
+!/vivado/
+/vivado/*
+!/vivado/*.tcl
+!/vivado/export/
+
