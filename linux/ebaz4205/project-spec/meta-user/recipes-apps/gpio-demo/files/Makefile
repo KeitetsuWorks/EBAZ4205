@@ -2,6 +2,7 @@ APP = gpio-demo
 
 # Add any other object files to this list below
 APP_OBJS = gpio-demo.o
+LDLIBS += -lpthread
 
 all: $(APP)
 
