@@ -10,10 +10,11 @@ This repository contains the Vivado and PetaLinux projects required to use the Z
 ### Hardware
 
 * Zynq EBAZ4205 Board (cost-reduced version)
-  * **No** 25MHz crystal (Y3) is required. The Ethernet transceiver (U24) clock is supplied by the ZYNQ (U31)
+  * **No** 25MHz crystal (Y3) is required. The Ethernet transceiver (U24) clock is supplied by the ZYNQ (U31). However, it also works on a board on which a crystal is mounted
   * microSD card slot (U7) required
   * SD card boot support is required. Short the resistor (R2577)
   * Short the diode (D24) to supply power from the power connector (J4) (Optional)
+  * Mount the tactile switch (S3), the capacitor (C2410) and the resistor (R2641A). The resistor (R2641A) can be shorted instead of mounting a 0 ohm resistor. I used 4.7uF for the capacitor (C2410) (Optional)
 
 
 ### Software
@@ -25,6 +26,11 @@ This repository contains the Vivado and PetaLinux projects required to use the Z
 ## How to Build 
 
 * [How to Build](./docs/how-to-build.md)
+
+
+## Demo Application
+
+* [GPIO Demo Application for Zynq EBAZ4205 Board](./linux/ebaz4205/project-spec/meta-user/recipes-apps/gpio-demo/README.md)
 
 
 ## References

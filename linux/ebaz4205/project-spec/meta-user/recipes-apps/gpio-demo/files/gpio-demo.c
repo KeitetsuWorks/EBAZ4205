@@ -1,355 +1,326 @@
-/*
-*
-* gpio-demo app
-*
-* Copyright (C) 2013 - 2016  Xilinx, Inc.  All rights reserved.
-*
-* Permission is hereby granted, free of charge, to any person
-* obtaining a copy of this software and associated documentation
-* files (the "Software"), to deal in the Software without restriction,
-* including without limitation the rights to use, copy, modify, merge,
-* publish, distribute, sublicense, and/or sell copies of the Software,
-* and to permit persons to whom the Software is furnished to do so,
-* subject to the following conditions:
-*
-* The above copyright notice and this permission notice shall be included
-* in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL XILINX  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-* WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-* CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*
-* Except as contained in this notice, the name of the Xilinx shall not be used
-* in advertising or otherwise to promote the sale, use or other dealings in this
-* Software without prior written authorization from Xilinx.
-*
-*/
+/**
+ * @file        gpio-demo.c
+ * @brief       GPIO Demo Application for Zynq EBAZ4205 Board
+ * @see         https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18842398/Linux+GPIO+Driver#LinuxGPIODriver-DemoApplication
+ */
 
+#include <fcntl.h>
+#include <linux/input.h>
+#include <pthread.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <unistd.h>
 #include <string.h>
-#include <errno.h>
-#include <fcntl.h>
-#include <signal.h>
+#include <time.h>
+#include <unistd.h>
 
-#define GPIO_ROOT "/sys/class/gpio"
-#define ARRAY_SIZE(a) (sizeof(a)/sizeof(a[0]))
+/**
+ * @name    Green LED (LED6G)
+ */
+/** @{ */
+/**
+ * @brief   Path to set source of LED events
+ */
+#define LED_TRIGGER_PATH "/sys/class/leds/led-green/trigger"
 
-static enum {NONE, IN, OUT, CYLON, KIT} gpio_opt = NONE;
+/**
+ * @brief   Path to set LED brightness
+ */
+#define LED_BRIGHTNESS_PATH "/sys/class/leds/led-green/brightness"
+/** @} */
 
-static const unsigned long cylon[] = {
-	0x00000080, 0x00000040, 0x00000020, 0x00000010,
-	0x00000008, 0x00000004, 0x00000002, 0x00000001,
-		    0x00000002, 0x00000004, 0x00000008,
-	0x00000010, 0x00000020, 0x00000040, 0x00000080,
-};
+/**
+ * @brief   Path to read input event
+ */
+#define KEY_EVENT_PATH "/dev/input/event0"
 
-static const unsigned long kit[] = {
-	0x000000e0, 0x00000070, 0x00000038, 0x0000001c,
-	0x0000000e, 0x00000007, 0x00000003, 0x00000001,
-		    0x00000003, 0x00000007, 0x0000000e,
-	0x0000001c, 0x00000038, 0x00000070, 0x000000e0,
-};
+#define LED_SPEED_MAX 9        /**< Maximum LED blinking speed */
+#define LED_SPEED_DEFAULT 5    /**< Default LED blinking speed */
+#define LED_PERIOD_COEFF 16000 /**< LED blinking period coefficient */
 
-static int gl_gpio_base = 0;
+static unsigned int led_speed;         /**< LED blinking speed */
+static pthread_mutex_t led_speed_lock; /**< Mutex */
 
-static void usage (char *argv0)
-{
-	char *basename = strrchr(argv0, '/');
-	if (!basename)
-		basename = argv0;
+static int blink_led_stop;  /**< LED blinking thread stop flag */
+static int blink_led_error; /**< LED blinking thread error flag */
 
-	fprintf(stderr,
-		"Usage: %s [-g GPIO_BASE] COMMAND\n"
-		"\twhere COMMAND is one of:\n"
-		"\t\t-i\t\tInput value from GPIO and print it\n"
-		"\t\t-o\tVALUE\tOutput value to GPIO\n"
-		"\t\t-c\t\tCylon test pattern\n"
-		"\t\t-k\t\t KIT test pattern\n"
-		"\tGPIO_BASE indicates which GPIO chip to talk to (The number can be \n"
-		"\tfound at /sys/class/gpio/gpiochipN).\n"
-		"\tThe highest gpiochipN is the first gpio listed in the dts file, \n"
-		"\tand the lowest gpiochipN is the last gpio listed in the dts file.\n"
-		"\tE.g.If the gpiochip240 is the LED_8bit gpio, and I want to output '1' \n"
-		"\tto the LED_8bit gpio, the command should be:\n"
-		"\t\tgpio-demo -g 240 -o 1\n"
-		"\n"
-		"\tgpio-demo written by Xilinx Inc.\n"
-		"\n"
-		,  basename);
-	exit(-2);
-}
+static int stop; /**< Stop flag */
 
-static int open_gpio_channel(int gpio_base)
-{
-	char gpio_nchan_file[128];
-	int gpio_nchan_fd;
-	int gpio_max;
-	int nchannel;
-	char nchannel_str[5];
-	char *cptr;
-	int c;
-	char channel_str[5];
+/**
+ * @brief   Signal handler
+ * @param[in]       signum          Signal
+ */
+static void signal_handler(int signum);
 
-	char *gpio_export_file = "/sys/class/gpio/export";
-	int export_fd=0;
+/**
+ * @brief   Initialize the LED
+ * @retval          0               Initialized the LED
+ * @retval          -1              Failed to initialize the LED
+ */
+static int init_led(void);
 
-	/* Check how many channels the GPIO chip has */
-	sprintf(gpio_nchan_file, "%s/gpiochip%d/ngpio", GPIO_ROOT, gpio_base);
-	gpio_nchan_fd = open(gpio_nchan_file, O_RDONLY);
-	if (gpio_nchan_fd < 0) {
-		fprintf(stderr, "Failed to open %s: %s\n", gpio_nchan_file, strerror(errno)); 
-		return -1;
-	}
-	read(gpio_nchan_fd, nchannel_str, sizeof(nchannel_str));
-	close(gpio_nchan_fd);
-	nchannel=(int)strtoul(nchannel_str, &cptr, 0);
-	if (cptr == nchannel_str) {
-		fprintf(stderr, "Failed to change %s into GPIO channel number\n", nchannel_str);
-		exit(1);
-	}
+/**
+ * @brief   Turn off the LED
+ * @retval          0               Turned off the LED
+ * @retval          -1              Failed to turn off the LED
+ */
+static int off_led(void);
 
-	/* Open files for each GPIO channel */
-	export_fd=open(gpio_export_file, O_WRONLY);
-	if (export_fd < 0) {
-		fprintf(stderr, "Cannot open GPIO to export %d\n", gpio_base);
-		return -1;
-	}
+/**
+ * @brief   LED blinking thread function
+ * @param           arg             Dummy argument
+ */
+static void *blink_led(void *arg);
 
-	gpio_max = gpio_base + nchannel;	
-	for(c = gpio_base; c < gpio_max; c++) {
-		sprintf(channel_str, "%d", c);
-		write(export_fd, channel_str, (strlen(channel_str)+1));
-	}
-	close(export_fd);
-	return nchannel;
-}
-
-static int close_gpio_channel(int gpio_base)
-{
-	char gpio_nchan_file[128];
-	int gpio_nchan_fd;
-	int gpio_max;
-	int nchannel;
-	char nchannel_str[5];
-	char *cptr;
-	int c;
-	char channel_str[5];
-
-	char *gpio_unexport_file = "/sys/class/gpio/unexport";
-	int unexport_fd=0;
-
-	/* Check how many channels the GPIO chip has */
-	sprintf(gpio_nchan_file, "%s/gpiochip%d/ngpio", GPIO_ROOT, gpio_base);
-	gpio_nchan_fd = open(gpio_nchan_file, O_RDONLY);
-	if (gpio_nchan_fd < 0) {
-		fprintf(stderr, "Failed to open %s: %s\n", gpio_nchan_file, strerror(errno)); 
-		return -1;
-	}
-	read(gpio_nchan_fd, nchannel_str, sizeof(nchannel_str));
-	close(gpio_nchan_fd);
-	nchannel=(int)strtoul(nchannel_str, &cptr, 0);
-	if (cptr == nchannel_str) {
-		fprintf(stderr, "Failed to change %s into GPIO channel number\n", nchannel_str);
-		exit(1);
-	}
-
-	/* Close opened files for each GPIO channel */
-	unexport_fd=open(gpio_unexport_file, O_WRONLY);
-	if (unexport_fd < 0) {
-		fprintf(stderr, "Cannot close GPIO by writing unexport %d\n", gpio_base);
-		return -1;
-	}
-
-	gpio_max = gpio_base + nchannel;	
-	for(c = gpio_base; c < gpio_max; c++) {
-		sprintf(channel_str, "%d", c);
-		write(unexport_fd, channel_str, (strlen(channel_str)+1));
-	}
-	close(unexport_fd);
-	return 0;
-}
-
-static int set_gpio_direction(int gpio_base, int nchannel, char *direction)
-{
-	char gpio_dir_file[128];
-	int direction_fd=0;
-	int gpio_max;
-	int c;
-
-	gpio_max = gpio_base + nchannel;
-	for(c = gpio_base; c < gpio_max; c++) {
-		sprintf(gpio_dir_file, "/sys/class/gpio/gpio%d/direction",c);
-		direction_fd=open(gpio_dir_file, O_RDWR);
-		if (direction_fd < 0) {
-			fprintf(stderr, "Cannot open the direction file for GPIO %d\n", c);
-			return 1;
-		}
-		write(direction_fd, direction, (strlen(direction)+1));
-		close(direction_fd);
-	}
-	return 0;
-}
-
-static int set_gpio_value(int gpio_base, int nchannel, int value)
-{
-	char gpio_val_file[128];
-	int val_fd=0;
-	int gpio_max;
-	char val_str[2];
-	int c;
-
-	gpio_max = gpio_base + nchannel;
-
-	for(c = gpio_base; c < gpio_max; c++) {
-		sprintf(gpio_val_file, "/sys/class/gpio/gpio%d/value",c);
-		val_fd=open(gpio_val_file, O_RDWR);
-		if (val_fd < 0) {
-			fprintf(stderr, "Cannot open the value file of GPIO %d\n", c);
-			return -1;
-		}
-		sprintf(val_str,"%d", (value & 1));
-		write(val_fd, val_str, sizeof(val_str));
-		close(val_fd);
-		value >>= 1;
-	}
-	return 0;
-}
-
-static int get_gpio_value(int gpio_base, int nchannel)
-{
-	char gpio_val_file[128];
-	int val_fd=0;
-	int gpio_max;
-	char val_str[2];
-	char *cptr;
-	int value = 0;
-	int c;
-
-	gpio_max = gpio_base + nchannel;
-
-	for(c = gpio_max-1; c >= gpio_base; c--) {
-		sprintf(gpio_val_file, "/sys/class/gpio/gpio%d/value",c);
-		val_fd=open(gpio_val_file, O_RDWR);
-		if (val_fd < 0) {
-			fprintf(stderr, "Cannot open GPIO to export %d\n", c);
-			return -1;
-		}
-		read(val_fd, val_str, sizeof(val_str));
-		value <<= 1;
-		value += (int)strtoul(val_str, &cptr, 0);
-		if (cptr == optarg) {
-			fprintf(stderr, "Failed to change %s into integer", val_str);
-		}
-		close(val_fd);
-	}
-	return value;
-}
-
-void signal_handler(int sig)
-{
-	switch (sig) {
-		case SIGTERM:
-		case SIGHUP:
-		case SIGQUIT:
-		case SIGINT:
-			close_gpio_channel(gl_gpio_base);
-			exit(0) ;
-		default:
-			break;
-	}
-}
-
+/**
+ * @brief   Main function
+ * @param[in]       argc            Argument count
+ * @param[in]       argv            Argument vector
+ * @return          Exit status
+ */
 int main(int argc, char *argv[])
 {
-	extern char *optarg;
-	char *cptr;
-	int gpio_value = 0;
-	int nchannel = 0;
+    int error;
+    struct sigaction sa_stop;
+    int key_event_fd;
+    struct input_event key_event;
+    size_t key_event_size;
+    int key_code;
+    pthread_t blink_led_pth;
 
-	int c;
-	int i;
+    /* Initialize the flags */
+    stop = 0;
+    error = 0;
 
-	opterr = 0;
-	
-	while ((c = getopt(argc, argv, "g:io:ck")) != -1) {
-		switch (c) {
-			case 'g':
-				gl_gpio_base = (int)strtoul(optarg, &cptr, 0);
-				if (cptr == optarg)
-					usage(argv[0]);
-				break;
-			case 'i':
-				gpio_opt = IN;
-				break;
-			case 'o':
-				gpio_opt = OUT;
-				gpio_value = (int)strtoul(optarg, &cptr, 0);
-				if (cptr == optarg)
-					usage(argv[0]);
-				break;
-			case 'c':
-				gpio_opt = CYLON;
-				break;
-			case 'k':
-				gpio_opt = KIT;
-				break;
-			case '?':
-				usage(argv[0]);
-			default:
-				usage(argv[0]);
-				
-		}
-	}
+    /* Initialize the signal handler */
+    memset(&sa_stop, 0, sizeof(sa_stop));
+    sa_stop.sa_handler = signal_handler;
+    sa_stop.sa_flags = SA_RESTART;
+    /* Catch kill signal */
+    if (sigaction(SIGTERM, &sa_stop, NULL) < 0) {
+        fprintf(stderr, "Error: Failed to set action for SIGTERM signal\n");
+        exit(EXIT_FAILURE);
+    }
+    /* Catch hang up signal */
+    if (sigaction(SIGHUP, &sa_stop, NULL) < 0) {
+        fprintf(stderr, "Error: Failed to set action for SIGHUP signal\n");
+        exit(EXIT_FAILURE);
+    }
+    /* Catch quit signal */
+    if (sigaction(SIGQUIT, &sa_stop, NULL) < 0) {
+        fprintf(stderr, "Error: Failed to set action for SIGQUIT signal\n");
+        exit(EXIT_FAILURE);
+    }
+    /* Catch a Ctrl-C signal */
+    if (sigaction(SIGINT, &sa_stop, NULL) < 0) {
+        fprintf(stderr, "Error: Failed to set action for SIGINT signal\n");
+        exit(EXIT_FAILURE);
+    }
 
-	if (gl_gpio_base == 0) {
-		usage(argv[0]);
-	}
+    /* Initialize the LED */
+    if (init_led() != 0) {
+        exit(EXIT_FAILURE);
+    }
+    fprintf(stdout, "Ready to use the LED\n");
 
-	nchannel = open_gpio_channel(gl_gpio_base);
-	signal(SIGTERM, signal_handler); /* catch kill signal */
-	signal(SIGHUP, signal_handler); /* catch hang up signal */
-	signal(SIGQUIT, signal_handler); /* catch quit signal */
-	signal(SIGINT, signal_handler); /* catch a CTRL-c signal */
-	switch (gpio_opt) {
-		case IN:
-			set_gpio_direction(gl_gpio_base, nchannel, "in");
-			gpio_value=get_gpio_value(gl_gpio_base, nchannel);
-			fprintf(stdout,"0x%08X\n", gpio_value);
-			break;
-		case OUT:
-			set_gpio_direction(gl_gpio_base, nchannel, "out");
-			set_gpio_value(gl_gpio_base, nchannel, gpio_value);
-			break;
-		case CYLON:
-#define CYLON_DELAY_USECS (10000)
-			set_gpio_direction(gl_gpio_base, nchannel, "out");
-			for (;;) {
-				for(i=0; i < ARRAY_SIZE(cylon); i++) {
-					gpio_value=(int)cylon[i];
-					set_gpio_value(gl_gpio_base, nchannel, gpio_value);
-				}
-				usleep(CYLON_DELAY_USECS);
-			}
-		case KIT:
-#define KIT_DELAY_USECS (10000)
-			set_gpio_direction(gl_gpio_base, nchannel, "out");
-			for (;;) {
-				for (i=0; i<ARRAY_SIZE(kit); i++) {
-					gpio_value=(int)kit[i];
-					set_gpio_value(gl_gpio_base, nchannel, gpio_value);
-				}
-				usleep(KIT_DELAY_USECS);
-			}
-		default:
-			break;
-	}
-	close_gpio_channel(gl_gpio_base);
-	return 0;
+    /* Create thread */
+    led_speed = LED_SPEED_DEFAULT;
+    pthread_mutex_init(&led_speed_lock, NULL);
+    blink_led_stop = 0;
+    blink_led_error = 0;
+    if (pthread_create(&blink_led_pth, NULL, blink_led, NULL) != 0) {
+        fprintf(stderr, "Error: Failed to create new thread\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* Open KEY_EVENT_PATH */
+    key_event_fd = open(KEY_EVENT_PATH, O_RDONLY);
+    if (key_event_fd == -1) {
+        fprintf(stderr, "Error: Failed to open " KEY_EVENT_PATH "\n");
+        error = 1;
+    }
+    key_event_size = sizeof(key_event);
+
+    /* Read and parse event, update global variable */
+    while (!stop && !error && !blink_led_error) {
+        if (read(key_event_fd, &key_event, key_event_size) < key_event_size) {
+            fprintf(stderr, "Error: Failed to read from " KEY_EVENT_PATH "\n");
+            error = 1;
+            break;
+        }
+
+        if (key_event.type == EV_KEY && key_event.value == 1) { /* Down press only */
+            key_code = key_event.code;
+            if (key_code == KEY_HOME) { /* Slow down */
+                /* Protect from concurrent read/write */
+                if (pthread_mutex_lock(&led_speed_lock) != 0) {
+                    fprintf(stderr, "Error: Failed to lock the mutex\n");
+                    error = 1;
+                    break;
+                }
+                if (led_speed > 0) {
+                    led_speed -= 1;
+                }
+                if (pthread_mutex_unlock(&led_speed_lock) != 0) {
+                    fprintf(stderr, "Error: Failed to unlock the mutex\n");
+                    error = 1;
+                    break;
+                }
+            }
+            else if (key_code == KEY_POWER) { /* Speed up */
+                /* Protect from concurrent read/write */
+                if (pthread_mutex_lock(&led_speed_lock) != 0) {
+                    fprintf(stderr, "Error: Failed to lock the mutex\n");
+                    error = 1;
+                    break;
+                }
+                if (led_speed < LED_SPEED_MAX) {
+                    led_speed += 1;
+                }
+                if (pthread_mutex_unlock(&led_speed_lock) != 0) {
+                    fprintf(stderr, "Error: Failed to unlock the mutex\n");
+                    error = 1;
+                    break;
+                }
+            }
+            fprintf(stdout, "Blinking Speed: %d\n", led_speed);
+            usleep(1000);
+        }
+    }
+
+    /* Close KEY_EVENT_PATH */
+    if (key_event_fd != -1) {
+        if (close(key_event_fd) == -1) {
+            fprintf(stderr, "Error: Failed to close " KEY_EVENT_PATH "\n");
+            error = 1;
+        }
+    }
+
+    /* Join thread */
+    blink_led_stop = 1;
+    if (pthread_join(blink_led_pth, NULL) != 0) {
+        fprintf(stderr, "Error: Failed to wait for the thread termination\n");
+        error = 1;
+    }
+    if (pthread_mutex_destroy(&led_speed_lock) != 0) {
+        fprintf(stderr, "Error: Failed to destroy the mutex\n");
+        error = 1;
+    }
+
+    /* Turn off the LED */
+    if (off_led() != 0) {
+        error = 1;
+    }
+
+    if (error != 0) {
+        exit(EXIT_FAILURE);
+    }
+
+    exit(EXIT_SUCCESS);
 }
 
+static void signal_handler(int signum)
+{
+    switch (signum) {
+        case SIGTERM:
+        case SIGHUP:
+        case SIGQUIT:
+        case SIGINT:
+            stop = 1;
+            break;
+        default:
+            break;
+    }
 
+    return;
+}
+
+static int init_led(void)
+{
+    int led_trigger_fd;
+
+    led_trigger_fd = open(LED_TRIGGER_PATH, O_WRONLY);
+    if (led_trigger_fd == -1) {
+        fprintf(stderr, "Error: Failed to open " LED_TRIGGER_PATH "\n");
+        return -1;
+    }
+    if (write(led_trigger_fd, "default-on", 11) != 11) {
+        fprintf(stderr, "Error: Failed to set source of LED events\n");
+        if (close(led_trigger_fd) == -1) {
+            fprintf(stderr, "Error: Failed to close " LED_TRIGGER_PATH "\n");
+        }
+        return -1;
+    }
+    if (close(led_trigger_fd) == -1) {
+        fprintf(stderr, "Error: Failed to close " LED_TRIGGER_PATH "\n");
+        return -1;
+    }
+    return 0;
+}
+
+static int off_led(void)
+{
+    int led_brightness_fd;
+
+    led_brightness_fd = open(LED_BRIGHTNESS_PATH, O_WRONLY);
+    if (led_brightness_fd == -1) {
+        fprintf(stderr, "Error: Failed to open " LED_BRIGHTNESS_PATH "\n");
+        return -1;
+    }
+    if (write(led_brightness_fd, "0", 2) != 2) {
+        fprintf(stderr, "Error: Failed to set LED brightness\n");
+        if (close(led_brightness_fd) == -1) {
+            fprintf(stderr, "Error: Failed to close " LED_BRIGHTNESS_PATH "\n");
+        }
+        return -1;
+    }
+    if (close(led_brightness_fd) == -1) {
+        fprintf(stderr, "Error: Failed to close " LED_BRIGHTNESS_PATH "\n");
+        return -1;
+    }
+    return 0;
+}
+
+static void *blink_led(void *arg)
+{
+    unsigned int led_period;
+    int led_brightness_fd;
+
+    led_brightness_fd = open(LED_BRIGHTNESS_PATH, O_WRONLY);
+    if (led_brightness_fd == -1) {
+        fprintf(stderr, "Failed to open " LED_BRIGHTNESS_PATH "\n");
+        blink_led_error = 1;
+        return (void *)&blink_led_error;
+    }
+    while (!blink_led_stop) {
+        if (pthread_mutex_lock(&led_speed_lock) != 0) {
+            fprintf(stderr, "Error: Failed to lock the mutex\n");
+            blink_led_error = 1;
+            break;
+        }
+        led_period = ((LED_SPEED_MAX + 1) - led_speed) * LED_PERIOD_COEFF;
+        if (pthread_mutex_unlock(&led_speed_lock) != 0) {
+            fprintf(stderr, "Error: Failed to unlock the mutex\n");
+            blink_led_error = 1;
+            break;
+        }
+
+        if (write(led_brightness_fd, "255", 4) != 4) {
+            fprintf(stderr, "Error: Failed to set LED brightness\n");
+            blink_led_error = 1;
+            break;
+        }
+        usleep(led_period);
+        if (write(led_brightness_fd, "0", 2) != 2) {
+            fprintf(stderr, "Error: Failed to set LED brightness\n");
+            blink_led_error = 1;
+            break;
+        }
+        usleep(led_period);
+    }
+    if (close(led_brightness_fd) == -1) {
+        fprintf(stderr, "Error: Failed to close " LED_BRIGHTNESS_PATH "\n");
+        blink_led_error = 1;
+    }
+    return (void *)&blink_led_error;
+}
