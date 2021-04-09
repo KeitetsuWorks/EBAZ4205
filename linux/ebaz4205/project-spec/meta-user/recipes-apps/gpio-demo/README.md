@@ -13,8 +13,8 @@ Running `petalinux-build` will generate a root filesystem containing this applic
 After logging in to Linux, run the application with `gpio-demo` command.  
 The message "Ready to use the LED" is displayed and the green LED (LED6G) blinks.
 The blinking speed can be changed in the range of 0 to 9. The default is 5.
-If you press the tactile switch (S3), the blinking speed will slow down.
-If you press the tactile switch (S2), the blinking speed will increase.  
+If you press the tactile switch (S2), the blinking speed will slow down.
+If you press the tactile switch (S3), the blinking speed will increase.  
 You can quit the application with `Ctrl + C` or `Ctrl + \` 
 
 ```console
