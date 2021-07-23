@@ -115,7 +115,7 @@ CONFIG_system-zynq=y
 # CONFIG_e2fsprogs-dev is not set
 # CONFIG_e2fsprogs-tune2fs is not set
 # CONFIG_libe2p is not set
-# CONFIG_e2fsprogs-mke2fs is not set
+CONFIG_e2fsprogs-mke2fs=y
 # CONFIG_e2fsprogs-dbg is not set
 
 #
@@ -2130,7 +2130,7 @@ CONFIG_run-postinsts=y
 #
 # opencl-clhpp
 #
-# CONFIG_opencl-clhpp is not set
+# CONFIG_opencl-clhpp-dev is not set
 
 #
 # opencl-headers
@@ -2211,14 +2211,6 @@ CONFIG_run-postinsts=y
 # CONFIG_ca-certificates is not set
 # CONFIG_ca-certificates-dev is not set
 # CONFIG_ca-certificates-dbg is not set
-
-#
-# chkconfig 
-#
-# CONFIG_chkconfig is not set
-# CONFIG_chkconfig-dbg is not set
-# CONFIG_chkconfig-dev is not set
-# CONFIG_chkconfig-alternatives is not set
 
 #
 # chrpath 
@@ -2513,8 +2505,6 @@ CONFIG_udev-extraconf=y
 # mkfontdir 
 #
 # CONFIG_mkfontdir is not set
-# CONFIG_mkfontdir-dev is not set
-# CONFIG_mkfontdir-dbg is not set
 
 #
 # mkfontscale 
@@ -2834,7 +2824,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtcharts-mkspecs is not set
 # CONFIG_qtcharts-dev is not set
 # CONFIG_qtcharts-dbg is not set
-# CONFIG_qtcharts-examples is not set
 # CONFIG_qtcharts-qmlplugins is not set
 # CONFIG_qtcharts-qmldesigner is not set
 
@@ -2845,7 +2834,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtconnectivity-tools is not set
 # CONFIG_qtconnectivity-mkspecs is not set
 # CONFIG_qtconnectivity-dev is not set
-# CONFIG_qtconnectivity-examples is not set
 # CONFIG_qtconnectivity-dbg is not set
 # CONFIG_qtconnectivity-qmlplugins is not set
 
@@ -2853,7 +2841,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # qtdeclarative 
 #
 # CONFIG_qtdeclarative is not set
-# CONFIG_qtdeclarative-examples is not set
 # CONFIG_qtdeclarative-dev is not set
 # CONFIG_qtdeclarative-dbg is not set
 # CONFIG_qtdeclarative-qmlplugins is not set
@@ -2863,11 +2850,8 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 #
 # qtenginio 
 #
-# CONFIG_qtenginio is not set
 # CONFIG_qtenginio-qmlplugins is not set
-# CONFIG_qtenginio-mkspecs is not set
 # CONFIG_qtenginio-dbg is not set
-# CONFIG_qtenginio-dev is not set
 # CONFIG_qtenginio-examples is not set
 
 #
@@ -2885,7 +2869,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtlocation-plugins is not set
 # CONFIG_qtlocation-qmlplugins is not set
 # CONFIG_qtlocation-dbg is not set
-# CONFIG_qtlocation-examples is not set
 # CONFIG_qtlocation-dev is not set
 # CONFIG_qtlocation-mkspecs is not set
 
@@ -2895,7 +2878,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtmultimedia is not set
 # CONFIG_qtmultimedia-plugins is not set
 # CONFIG_qtmultimedia-mkspecs is not set
-# CONFIG_qtmultimedia-examples is not set
 # CONFIG_qtmultimedia-qmlplugins is not set
 # CONFIG_qtmultimedia-dev is not set
 # CONFIG_qtmultimedia-dbg is not set
@@ -2905,7 +2887,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 #
 # CONFIG_qtquickcontrols is not set
 # CONFIG_qtquickcontrols-dbg is not set
-# CONFIG_qtquickcontrols-examples is not set
 # CONFIG_qtquickcontrols-dev is not set
 # CONFIG_qtquickcontrols-qmlplugins is not set
 # CONFIG_qtquickcontrols-qmldesigner is not set
@@ -2914,7 +2895,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # qtscript 
 #
 # CONFIG_qtscript is not set
-# CONFIG_qtscript-examples is not set
 # CONFIG_qtscript-mkspecs is not set
 # CONFIG_qtscript-dbg is not set
 # CONFIG_qtscript-dev is not set
@@ -2925,7 +2905,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtsensors is not set
 # CONFIG_qtsensors-dbg is not set
 # CONFIG_qtsensors-mkspecs is not set
-# CONFIG_qtsensors-examples is not set
 # CONFIG_qtsensors-dev is not set
 # CONFIG_qtsensors-plugins is not set
 # CONFIG_qtsensors-qmlplugins is not set
@@ -2936,7 +2915,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtserialport is not set
 # CONFIG_qtserialport-mkspecs is not set
 # CONFIG_qtserialport-dev is not set
-# CONFIG_qtserialport-examples is not set
 # CONFIG_qtserialport-dbg is not set
 
 #
@@ -2947,7 +2925,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtsvg-mkspecs is not set
 # CONFIG_qtsvg-dbg is not set
 # CONFIG_qtsvg-dev is not set
-# CONFIG_qtsvg-examples is not set
 
 #
 # qtsystems 
@@ -2957,14 +2934,12 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtsystems-tools is not set
 # CONFIG_qtsystems-dev is not set
 # CONFIG_qtsystems-qmlplugins is not set
-# CONFIG_qtsystems-examples is not set
 # CONFIG_qtsystems-mkspecs is not set
 
 #
 # qttools 
 #
 # CONFIG_qttools is not set
-# CONFIG_qttools-examples is not set
 # CONFIG_qttools-mkspecs is not set
 # CONFIG_qttools-dbg is not set
 # CONFIG_qttools-tools is not set
@@ -2999,7 +2974,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 #
 # CONFIG_qtwebchannel is not set
 # CONFIG_qtwebchannel-dev is not set
-# CONFIG_qtwebchannel-examples is not set
 # CONFIG_qtwebchannel-dbg is not set
 # CONFIG_qtwebchannel-qmlplugins is not set
 # CONFIG_qtwebchannel-mkspecs is not set
@@ -3019,7 +2993,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtwebsockets is not set
 # CONFIG_qtwebsockets-dev is not set
 # CONFIG_qtwebsockets-qmlplugins is not set
-# CONFIG_qtwebsockets-examples is not set
 # CONFIG_qtwebsockets-mkspecs is not set
 # CONFIG_qtwebsockets-dbg is not set
 
@@ -3030,7 +3003,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtxmlpatterns-mkspecs is not set
 # CONFIG_qtxmlpatterns-dbg is not set
 # CONFIG_qtxmlpatterns-dev is not set
-# CONFIG_qtxmlpatterns-examples is not set
 # CONFIG_qtxmlpatterns-tools is not set
 
 #
@@ -3085,13 +3057,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_sysfsutils-dbg is not set
 
 #
-# sysprof 
-#
-# CONFIG_sysprof is not set
-# CONFIG_sysprof-dev is not set
-# CONFIG_sysprof-dbg is not set
-
-#
 # systemtap 
 #
 # CONFIG_systemtap is not set
@@ -3118,13 +3083,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 CONFIG_tcf-agent=y
 # CONFIG_tcf-agent-dbg is not set
 # CONFIG_tcf-agent-dev is not set
-
-#
-# texi2html 
-#
-# CONFIG_texi2html is not set
-# CONFIG_texi2html-dbg is not set
-# CONFIG_texi2html-dev is not set
 
 #
 # tiff 
@@ -3397,7 +3355,6 @@ CONFIG_tcf-agent=y
 #
 # CONFIG_gstreamer1.0 is not set
 # CONFIG_gstreamer1.0-dev is not set
-# CONFIG_gstreamer1.0-bash-completion is not set
 # CONFIG_gstreamer1.0-dbg is not set
 
 #
@@ -3517,6 +3474,13 @@ CONFIG_bridge-utils=y
 # CONFIG_resize-part-dev is not set
 
 #
+# u-boot-tools
+#
+CONFIG_u-boot-tools=y
+# CONFIG_u-boot-tools-dbg is not set
+# CONFIG_u-boot-tools-dev is not set
+
+#
 # x11 
 #
 
@@ -3634,8 +3598,6 @@ CONFIG_bridge-utils=y
 #
 # gnome-themes-standard 
 #
-# CONFIG_gnome-themes-standard-dev is not set
-# CONFIG_gnome-themes-standard-dbg is not set
 # CONFIG_gnome-theme-adwaita is not set
 
 #
@@ -3890,6 +3852,13 @@ CONFIG_bridge-utils=y
 # CONFIG_packagegroup-petalinux-dbg is not set
 
 #
+# packagegroup-petalinux-audio 
+#
+# CONFIG_packagegroup-petalinux-audio is not set
+# CONFIG_packagegroup-petalinux-audio-dbg is not set
+# CONFIG_packagegroup-petalinux-audio-dev is not set
+
+#
 # packagegroup-petalinux-display-debug 
 #
 # CONFIG_packagegroup-petalinux-display-debug is not set
@@ -3975,13 +3944,6 @@ CONFIG_bridge-utils=y
 # CONFIG_packagegroup-petalinux-self-hosted-dev is not set
 
 #
-# packagegroup-petalinux-updateboot 
-#
-# CONFIG_packagegroup-petalinux-updateboot is not set
-# CONFIG_packagegroup-petalinux-updateboot-dbg is not set
-# CONFIG_packagegroup-petalinux-updateboot-dev is not set
-
-#
 # packagegroup-petalinux-utils 
 #
 # CONFIG_packagegroup-petalinux-utils is not set
@@ -4001,13 +3963,6 @@ CONFIG_bridge-utils=y
 # CONFIG_packagegroup-petalinux-x11 is not set
 # CONFIG_packagegroup-petalinux-x11-dbg is not set
 # CONFIG_packagegroup-petalinux-x11-dev is not set
-
-#
-# packagegroup-petalinux-xrt 
-#
-# CONFIG_packagegroup-petalinux-xrt is not set
-# CONFIG_packagegroup-petalinux-xrt-dev is not set
-# CONFIG_packagegroup-petalinux-xrt-dbg is not set
 
 #
 # Image Features
