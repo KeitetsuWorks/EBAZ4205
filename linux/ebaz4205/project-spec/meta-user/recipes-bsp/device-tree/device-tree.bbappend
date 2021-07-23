@@ -1,6 +1,7 @@
-FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
+FILESEXTRAPATHS_prepend := "${THISDIR}/files:${SYSCONFIG_PATH}:"
 
-SRC_URI += " \
+SRC_URI_append = " \
+    file://config \
     file://system-user.dtsi \
     file://ebaz4205.dtsi \
     "
