@@ -1,7 +1,7 @@
 FILESEXTRAPATHS_prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://platform-top.h \
-            file://devtool-fragment.cfg \
+            file://disable-env-is-in-spi-flash-and-nand-device.cfg \
             "
 
 do_configure_append () {
