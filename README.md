@@ -62,8 +62,8 @@ This repository contains the Vivado and PetaLinux projects required to use the Z
 * [UG1144 - PetaLinux Tools Documentation Reference Guide (v2021.1)](https://www.xilinx.com/support/documentation/sw_manuals/xilinx2021_1/ug1144-petalinux-tools-reference-guide.pdf)
 * [LEDS-GPIO Driver - Linux GPIO Driver - Xilinx Wiki - Confluence](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18842398/Linux+GPIO+Driver#LinuxGPIODriver-LEDS-GPIODriver)
 * [GPIO-Keys Driver - Linux GPIO Driver - Xilinx Wiki - Confluence](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18842398/Linux+GPIO+Driver#LinuxGPIODriver-GPIO-KeysDriver)
-* [Vitis In-Depth Tutorials 2020.2 Platform Creation](https://xilinx.github.io/Vitis-Tutorials/master/docs/Vitis_Platform_Creation/README.html)
-* [Vitis チュートリアル 2020.2 プラットフォームの作成](https://xilinx.github.io/Vitis-Tutorials/master/docs-jp/Vitis_Platform_Creation/README.html)
+* [Vitis Tutorials 2021.1 - Vitis Platform Creation Tutorials](https://xilinx.github.io/Vitis-Tutorials/2021-1/build/html/docs/Vitis_Platform_Creation/Vitis_Platform_Creation.html)
+* [Vitis チュートリアル - Vitis プラットフォームの作成チュートリアル](https://xilinx.github.io/Vitis-Tutorials/master/docs-jp/docs/Vitis_Platform_Creation/Vitis_Platform_Creation.html)
 
 
 ### Linux Kernel

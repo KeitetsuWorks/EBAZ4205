@@ -15,7 +15,7 @@
     source ./ebaz4205.tcl
     ```
 
-1. Run implementation from Flow Navigator
+1. Generate Bitstream from Flow Navigator
 
 1. In Vivado, select File -> Export -> Export Hardware
 
