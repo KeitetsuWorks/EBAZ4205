@@ -19,8 +19,8 @@ This repository contains the Vivado and PetaLinux projects required to use the Z
 
 ### Software
 
-* Xilinx Vivado 2021.1
-* Xilinx PetaLinux 2021.1
+* Xilinx Vivado 2021.2
+* Xilinx PetaLinux 2021.2
 
 
 ## How to Build 
@@ -59,7 +59,7 @@ This repository contains the Vivado and PetaLinux projects required to use the Z
 * [UG865 - Zynq-7000 SoC Packaging Guide (v1.8.1)](https://www.xilinx.com/support/documentation/user_guides/ug865-Zynq-7000-Pkg-Pinout.pdf)
 * [UG865 - Zynq‐7000 SoC パッケージ ガイド (v1.8.1)](https://japan.xilinx.com/support/documentation/user_guides/j_ug865-Zynq-7000-Pkg-Pinout.pdf)
 * [XC7Z010CLG400 ピン配置ファイル](https://japan.xilinx.com/support/packagefiles/z7packages/xc7z010clg400pkg.txt)
-* [UG1144 - PetaLinux Tools Documentation Reference Guide (v2021.1)](https://www.xilinx.com/support/documentation/sw_manuals/xilinx2021_1/ug1144-petalinux-tools-reference-guide.pdf)
+* [UG1144 - PetaLinux Tools Documentation Reference Guide (v2021.2)](https://www.xilinx.com/support/documentation/sw_manuals/xilinx2021_2/ug1144-petalinux-tools-reference-guide.pdf)
 * [LEDS-GPIO Driver - Linux GPIO Driver - Xilinx Wiki - Confluence](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18842398/Linux+GPIO+Driver#LinuxGPIODriver-LEDS-GPIODriver)
 * [GPIO-Keys Driver - Linux GPIO Driver - Xilinx Wiki - Confluence](https://xilinx-wiki.atlassian.net/wiki/spaces/A/pages/18842398/Linux+GPIO+Driver#LinuxGPIODriver-GPIO-KeysDriver)
 * [Vitis Tutorials 2021.1 - Vitis Platform Creation Tutorials](https://xilinx.github.io/Vitis-Tutorials/2021-1/build/html/docs/Vitis_Platform_Creation/Vitis_Platform_Creation.html)

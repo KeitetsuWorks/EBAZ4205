@@ -2848,13 +2848,6 @@ CONFIG_packagegroup-core-ssh-dropbear=y
 # CONFIG_qtdeclarative-mkspecs is not set
 
 #
-# qtenginio 
-#
-# CONFIG_qtenginio-qmlplugins is not set
-# CONFIG_qtenginio-dbg is not set
-# CONFIG_qtenginio-examples is not set
-
-#
 # qtimageformats 
 #
 # CONFIG_qtimageformats is not set
